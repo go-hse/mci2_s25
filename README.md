@@ -4,3 +4,6 @@ Studiengang Softwaretechnik und Mendieninformatik
 
 
 
+13.03.2025 - erste Vorlesung im Sommersemester 2025
+
+
