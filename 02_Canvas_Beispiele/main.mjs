@@ -1,6 +1,6 @@
 // import * as lib from "./js/funcs.mjs";
 
-// import { test, Hello } from "./js/funcs.mjs"
+import { circle } from "./js/funcs.mjs"
 
 
 window.onload = () => {
@@ -38,6 +38,8 @@ window.onload = () => {
         ctx.rotate(alpha);
         ctx.translate(-rect_width / 2, -rect_height / 2);
         ctx.fillRect(0, 0, rect_width, rect_height);
+
+        circle(ctx, 0, 0, 50, "#f00");
 
         window.requestAnimationFrame(draw);
     }

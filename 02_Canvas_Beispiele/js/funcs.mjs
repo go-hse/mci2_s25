@@ -1,8 +1,10 @@
 
-export function test() {
-    console.log("Test Funktion");
+const END_ANGLE = Math.PI * 2;
+
+export function circle(ctx, x, y, radius, color) {
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, END_ANGLE, true);
+    ctx.fill();
 }
 
-export function Hello() {
-    console.log("Test Funktion 2");
-}
