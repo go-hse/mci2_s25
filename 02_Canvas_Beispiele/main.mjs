@@ -39,6 +39,7 @@ window.onload = () => {
         ctx.translate(-rect_width / 2, -rect_height / 2);
         ctx.fillRect(0, 0, rect_width, rect_height);
 
+        ctx.scale(2, 2);
         circle(ctx, 0, 0, 50, "#f00");
 
         window.requestAnimationFrame(draw);
