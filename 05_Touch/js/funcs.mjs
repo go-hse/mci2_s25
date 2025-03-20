@@ -47,6 +47,33 @@ export function createButton(x, y, radius, callback, color = "#444", touchedColo
 }
 
 
+export function createUpath() {
+    let upath = new Path2D();
+    upath.moveTo(-2, -2);
+    upath.lineTo(-2, 2);
+    upath.lineTo(-1, 2);
+    upath.lineTo(-1, -1);
+    upath.lineTo(1, -1);
+    upath.lineTo(1, 2);
+    upath.lineTo(2, 2);
+    upath.lineTo(2, -2);
+    upath.closePath();
+    return upath;
+}
+
+export function fillPath(ctx, path, x, y, sc, fillStyle = "#fff", strokeStyle = "#000", lineWidth = 0.1) {
+    ctx.save();  // Speichern des Zustands mit der aktuellen Matrix auf Stack
+    ctx.translate(x, y);
+    ctx.scale(sc, sc);
+    ctx.fillStyle = fillStyle;
+    ctx.lineWidth = lineWidth;
+    ctx.strokeStyle = strokeStyle;
+    ctx.fill(path);
+    ctx.stroke(path);
+    ctx.restore(); // Holen der gespeicherten Matrix vom Stack
+}
+
+
 export class Button {
     constructor(ctx, x, y, radius = 100, callback, color = "#f00", touchedColor = "#ff0") {
         this.ctx = ctx;
@@ -55,21 +82,21 @@ export class Button {
         this.radius = radius;
         this.color = color;
         this.touchedColor = touchedColor;
-        this.isTouched = false;
+        this.touchedState = false;
         this.touchID = undefined;
         this.callback = callback;
     }
 
     draw() {
-        if (this.isTouched)
+        if (this.touchedState)
             circle(this.ctx, this.x, this.y, this.radius, this.touchedColor);
         else
             circle(this.ctx, this.x, this.y, this.radius, this.color);
     }
 
     isTouched(id, tx, ty) {
-        this.isTouched = distance(this.x, this.y, tx, ty) < radius;
-        if (this.isTouched) {
+        this.touchedState = distance(this.x, this.y, tx, ty) < this.radius;
+        if (this.touchedState) {
             this.touchID = id;
             this.callback();
         }
@@ -78,7 +105,7 @@ export class Button {
     reset(id) {
         if (this.touchID === id) {
             this.touchID = undefined;
-            this.isTouched = false;
+            this.touchedState = false;
         }
     }
 

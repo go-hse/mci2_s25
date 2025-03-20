@@ -1,4 +1,4 @@
-import { circle, createButton, Button } from "./js/funcs.mjs"
+import { circle, createButton, Button, createUpath, fillPath } from "./js/funcs.mjs"
 
 window.onload = () => {
     const cnv = document.getElementById("cnv");
@@ -10,9 +10,7 @@ window.onload = () => {
     }
     addEventListener("resize", resize);
 
-    const fontsize = cnv.width / 20;
-    const border = fontsize / 6;
-    const radius = cnv.width / 5;
+    const u_path = createUpath();
 
     let counter = 0;
     function onBtn() {
@@ -26,7 +24,7 @@ window.onload = () => {
     interactiveObjects.push(createButton(100, 150, 40, () => {
         console.log("Button 2", counter)
     }));
-    // interactiveObjects.push(new Button(ctx, 100, 250, 40, onBtn, "#f00"));
+    interactiveObjects.push(new Button(ctx, 100, 250, 40, onBtn, "#f00"));
 
     let cx, cy;
     // callback: innere Funktion
@@ -62,6 +60,8 @@ window.onload = () => {
         for (let io of interactiveObjects) {
             io.draw(ctx);
         }
+
+        fillPath(ctx, u_path, 200, 200, 30);
 
         window.requestAnimationFrame(draw);
     }
