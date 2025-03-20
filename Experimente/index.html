@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Touch Schieberegler mit Canvas</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        canvas {
+            background: #ddd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="sliderCanvas" width="300" height="40"></canvas>
+
+    <script>
+        const canvas = document.getElementById("sliderCanvas");
+        const ctx = canvas.getContext("2d");
+        let isDragging = false;
+        let sliderX = 0;
+        const sliderRadius = 10;
+
+        function drawSlider() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Zeichne die Schiene
+            ctx.fillStyle = "#bbb";
+            ctx.fillRect(0, canvas.height / 2 - 5, canvas.width, 10);
+
+            // Zeichne den Schieberegler
+            ctx.fillStyle = "#007bff";
+            ctx.beginPath();
+            ctx.arc(sliderX, canvas.height / 2, sliderRadius, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        function moveSlider(clientX) {
+            const rect = canvas.getBoundingClientRect();
+            let offsetX = clientX - rect.left;
+            if (offsetX < sliderRadius) offsetX = sliderRadius;
+            if (offsetX > canvas.width - sliderRadius) offsetX = canvas.width - sliderRadius;
+            sliderX = offsetX;
+            drawSlider();
+        }
+
+        canvas.addEventListener("mousedown", (e) => {
+            isDragging = true;
+            moveSlider(e.clientX);
+        });
+
+        document.addEventListener("mousemove", (e) => {
+            if (isDragging) moveSlider(e.clientX);
+        });
+
+        document.addEventListener("mouseup", () => {
+            isDragging = false;
+        });
+
+        canvas.addEventListener("touchstart", (e) => {
+            isDragging = true;
+            moveSlider(e.touches[0].clientX);
+            e.preventDefault();
+        });
+
+        document.addEventListener("touchmove", (e) => {
+            if (isDragging) moveSlider(e.touches[0].clientX);
+        });
+
+        document.addEventListener("touchend", () => {
+            isDragging = false;
+        });
+
+        // Initiales Zeichnen des Sliders
+        sliderX = sliderRadius;
+        drawSlider();
+    </script>
+</body>
+
+</html>
