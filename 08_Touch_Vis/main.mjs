@@ -10,10 +10,7 @@ window.onload = () => {
     }
     addEventListener("resize", resize);
 
-    const iU = createInteractivePath(ctx, 100, 100, createUpath(), "#f00");
-
-    const radius = 50;
-    const distance = radius * 2.5;
+    const iU = createInteractivePath(ctx, 100, 200, createUpath(), "#f00");
 
     cnv.addEventListener("touchstart", (ev) => {
         ev.preventDefault();
