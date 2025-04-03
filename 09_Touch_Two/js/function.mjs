@@ -19,8 +19,15 @@ export function circle(ctx, x, y, radius, color) {
     ctx.fill();
 }
 
+function distance(x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    return Math.sqrt(dx * dx + dy * dy);
+}
+
+
 export function createInteractivePath(ctx, x, y, path, color = "#444", touchedColor = "#f44") {
-    let fingerIdOne, fingerIdTwo, x1, y1, x2, y2;
+    let fingerIdOne, fingerIdTwo, x1, y1, x2, y2, initialDistance;
 
     console.log("createInteractivePath", new Date());
     let P, L = transform(ctx, x, y, 0, 20);
@@ -52,8 +59,9 @@ export function createInteractivePath(ctx, x, y, path, color = "#444", touchedCo
 
         if (fingerIdOne !== undefined && fingerIdTwo !== undefined) {
             // 2 Finger aktiv: nur Translation und Drehung
+            const currentDistance = distance(x1, y1, x2, y2);
             const alpha = Math.atan2(y2 - y1, x2 - x1);
-            L = transform(ctx, x1, y1, alpha).multiplySelf(P); // L = Tn * P
+            L = transform(ctx, x1, y1, alpha, currentDistance / initialDistance).multiplySelf(P); // L = Tn * P
         } else if (fingerIdOne !== undefined) {
             // nur 1 Finger aktiv Translation, keine Drehung
             L = transform(ctx, x1, y1, 0).multiplySelf(P); // L = Tn * P
@@ -77,6 +85,7 @@ export function createInteractivePath(ctx, x, y, path, color = "#444", touchedCo
             if (fingerIdTwo === undefined) {
                 fingerIdTwo = id;
                 x2 = tx; y2 = ty;
+                initialDistance = distance(x1, y1, x2, y2);
                 const alpha = Math.atan2(y2 - y1, x2 - x1);
                 console.log("2", id);
                 P = transform(ctx, x1, y1, alpha).invertSelf().multiplySelf(L);  // Formel für P = Ti-1 Li
