@@ -1,4 +1,4 @@
-import { createInteractivePath, createUpath } from "./js/function.mjs";
+import { createJoystick, createUpath, arrow } from "./js/function.mjs";
 
 window.onload = () => {
     const cnv = document.getElementById("cnv");
@@ -10,7 +10,7 @@ window.onload = () => {
     }
     addEventListener("resize", resize);
 
-    const iU = createInteractivePath(ctx, 100, 200, createUpath(), "#f00");
+    const iU = createJoystick(ctx, 100, 200, arrow(), 30, "#f00");
 
     cnv.addEventListener("touchstart", (ev) => {
         ev.preventDefault();

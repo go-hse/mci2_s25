@@ -79,7 +79,7 @@ export function createInteractivePath(ctx, x, y, path, color = "#444", touchedCo
                 fingerIdOne = id;
                 x1 = tx; y1 = ty;
                 console.log("1", id);
-                P = transform(ctx, x1, y1).invertSelf().multiplySelf(L);  // Formel für P = Ti-1 Li
+                P = transform(ctx, x1, y1, 0).invertSelf().multiplySelf(L);  // Formel für P = Ti-1 Li
             }
         } else {
             if (fingerIdTwo === undefined) {
