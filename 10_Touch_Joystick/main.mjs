@@ -1,4 +1,4 @@
-import { createJoystick, createUpath, arrow } from "./js/function.mjs";
+import { createJoystick, image, arrow } from "./js/function.mjs";
 
 window.onload = () => {
     const cnv = document.getElementById("cnv");
@@ -9,6 +9,9 @@ window.onload = () => {
         cnv.height = window.innerHeight;
     }
     addEventListener("resize", resize);
+
+
+    const imageDraw = image(ctx, "./img/skimmer-hat.png", 100);
 
     const iU = createJoystick(ctx, 100, 200, arrow(), 30, "#f00");
 
@@ -39,6 +42,7 @@ window.onload = () => {
         ctx.clearRect(0, 0, cnv.width, cnv.height);
 
         iU.draw(ctx);
+        imageDraw(100, 100, 0);
 
         window.requestAnimationFrame(draw);
     }

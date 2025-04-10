@@ -132,3 +132,31 @@ export function fillPath(ctx, path, M, fillStyle = "#fff", strokeStyle = "#000",
     ctx.stroke(path);
     ctx.restore(); // Holen der gespeicherten Matrix vom Stack
 }
+
+
+export function image(ctx, src, width) {
+    let img = new Image();
+    img.src = src;
+    let offsetX = 0, offsetY = 0;
+    let sc = 1;
+
+    img.addEventListener('load', () => {
+        sc = width / img.naturalWidth;
+        offsetX = -img.naturalWidth / 2;
+        offsetY = -img.naturalHeight / 2;
+        console.log('Imaged loaded: ', offsetX, offsetY, width, sc);
+    });
+
+    // Rueckgabe: Zeichen-Funktion
+    return (x, y, angle) => {
+        if (offsetX < 0) {
+            ctx.save();
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+            ctx.scale(sc, sc);
+            ctx.translate(offsetX, offsetY);
+            ctx.drawImage(img, 0, 0);
+            ctx.restore();
+        }
+    }
+}
