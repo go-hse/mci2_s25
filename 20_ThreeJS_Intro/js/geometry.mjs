@@ -10,6 +10,8 @@ const geometries = [
     new THREE.CapsuleGeometry(0.1, 0.3, 8, 16)
 ];
 
+export const NO_OF_GEOS = geometries.length;
+
 function randomMaterial() {
     return new THREE.MeshStandardMaterial({
         color: Math.random() * 0xff3333,
