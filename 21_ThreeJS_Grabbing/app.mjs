@@ -34,6 +34,8 @@ window.onload = function () {
     const cursor = add(1, scene);
     mouse(cursor);
 
+
+
     const delta = 0.3, z = -    1;
     for (let x = -2; x <= 2; x += delta * 2) {
         for (let y = -1; y <= 1; y += delta) {
