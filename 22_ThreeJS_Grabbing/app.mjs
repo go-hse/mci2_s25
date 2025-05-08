@@ -101,13 +101,17 @@ window.onload = function () {
             intersectObject.object.material.emissive.set(0x000000);
         }
 
-        intersectObject = rayFunc(position, direction);
-        if (intersectObject) {
-            // console.log(intersectObject);
-            endRay.addVectors(position, direction.multiplyScalar(intersectObject.distance));
-            intersectObject.object.material.emissive.set(0x555555);
+        if (grabbedObject === undefined) {
+            intersectObject = rayFunc(position, direction);
+            if (intersectObject) {
+                // console.log(intersectObject);
+                endRay.addVectors(position, direction.multiplyScalar(intersectObject.distance));
+                intersectObject.object.material.emissive.set(0x555555);
+            } else {
+                endRay.addVectors(position, direction.multiplyScalar(10));
+            }
         } else {
-            endRay.addVectors(position, direction.multiplyScalar(10));
+            endRay.addVectors(position, direction.multiplyScalar(intersectObject.distance));
         }
 
         if (grabbed) {
