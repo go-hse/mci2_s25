@@ -12,7 +12,7 @@ const geometries = [
 
 export const NO_OF_GEOS = geometries.length;
 
-function randomMaterial() {
+export function randomMaterial() {
     return new THREE.MeshStandardMaterial({
         color: Math.random() * 0xff3333,
         roughness: 0.2,
@@ -24,5 +24,36 @@ export function add(i, parent, x = 0, y = 0, z = 0) {
     let object = new THREE.Mesh(geometries[i], randomMaterial());
     object.position.set(x, y, z);
     parent.add(object);
+    object.castShadow = true;
     return object;
+}
+
+
+export function createLine(scene) {
+    const material = new THREE.LineBasicMaterial({
+        color: 0xffffff
+    });
+
+    const points = [];
+    points.push(new THREE.Vector3(0, 0, 0));
+    points.push(new THREE.Vector3(0, 1, 0));
+
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+    const line = new THREE.Line(geometry, material);
+    line.castShadow = true;
+
+    scene.add(line);
+
+    const positions = line.geometry.attributes.position.array;
+
+    function setPos(idx, positionIn) {
+        idx *= 3;
+        positions[idx++] = positionIn.x;
+        positions[idx++] = positionIn.y;
+        positions[idx++] = positionIn.z;
+        line.geometry.attributes.position.needsUpdate = true;
+    }
+
+    return setPos;
 }

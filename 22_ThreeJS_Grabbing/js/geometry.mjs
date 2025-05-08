@@ -20,11 +20,13 @@ export function randomMaterial() {
     });
 }
 
-export function add(i, parent, x = 0, y = 0, z = 0) {
+export function add(i, parent, x = 0, y = 0, z = 0, update = true) {
     let object = new THREE.Mesh(geometries[i], randomMaterial());
     object.position.set(x, y, z);
+    object.updateMatrix();
     object.castShadow = true;
     object.receiveShadow = true;
+    object.matrixAutoUpdate = update;
     parent.add(object);
     return object;
 }

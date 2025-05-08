@@ -1,3 +1,4 @@
+
 export function keyboard() {
     const keys = {};
 
@@ -11,10 +12,6 @@ export function keyboard() {
                 KeyObject.active = active;
                 KeyObject.callback(active);
             }
-
-            if (!active && KeyObject.cbOnRelease !== undefined) {
-                KeyObject.cbOnRelease();
-            }
         } else {
             console.log(`unbekannt <${ev.key}>`);
         }
@@ -24,59 +21,60 @@ export function keyboard() {
     document.addEventListener("keydown", (ev) => toggle(ev, true));
     document.addEventListener("keyup", (ev) => toggle(ev, false));
 
-    function add(key, callback, cbOnRelease) {
-        keys[key] = { active: false, callback, cbOnRelease };  // KeyObject, oben
+    function add(key, callback) {
+        keys[key] = { active: false, callback };  // KeyObject, oben
     }
 
     return add;
 }
 
-
-
-
 const MOVESCALE = 0.001;
+
 export function mouse(cursor) {
 
     const mouseButtons = [false, false, false, false];
-
     function toggle(ev, active) {
         mouseButtons[ev.which] = active;
         // console.log(mouseButtons);
     }
 
-
     function onMouseMove(ev) {
-        // console.log(ev);
-
-        const isRotation = ev.ctrlKey;
         const dx = ev.movementX * MOVESCALE;
         const dy = ev.movementY * MOVESCALE;
+
+        const isRotation = ev.ctrlKey;
 
         if (!isRotation && mouseButtons[1]) {
             cursor.position.x += dx;
             cursor.position.y -= dy;
         }
+
         if (!isRotation && mouseButtons[3]) {
             cursor.position.x += dx;
             cursor.position.z += dy;
         }
+
         if (isRotation && mouseButtons[1]) {
             cursor.rotation.x += dy;
             cursor.rotation.z += dx;
         }
+        cursor.updateMatrix();
+
     }
-    // cursor.updateMatrix();
 
 
+
+    // Listener
     document.addEventListener("mousedown", (ev) => toggle(ev, true));
     document.addEventListener("mouseup", (ev) => toggle(ev, false));
     document.addEventListener("mousemove", onMouseMove);
-
 
     document.addEventListener('contextmenu', ev => {
         ev.preventDefault();
         ev.stopPropagation();
         return false;
     });
+
 }
+
 

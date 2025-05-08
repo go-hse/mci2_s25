@@ -48,8 +48,11 @@ window.onload = function () {
 
     const addToKeyboard = keyboard();
 
+    let grabbed = false; // taste: benutzer will greifen
+
     addToKeyboard(" ", (active) => {
         console.log("Space", active);
+        grabbed = active;
     });
 
     const cursor = add(1, scene);
@@ -59,7 +62,7 @@ window.onload = function () {
     for (let x = -2; x <= 2; x += delta * 2) {
         for (let y = -1; y <= 1; y += delta) {
             const id = Math.trunc(Math.random() * NO_OF_GEOS);
-            arr.push(add(id, scene, x, y, z));
+            arr.push(add(id, scene, x, y, z, false));
         }
     }
 
@@ -87,26 +90,39 @@ window.onload = function () {
     const direction = new THREE.Vector3();
     const endRay = new THREE.Vector3();
 
+    let intersectObject, grabbedObject, initialGrabbed;
 
     function render() {
         cursor.matrix.decompose(position, rotation, scale);
         direction.set(0, 1, 0);
         direction.applyQuaternion(rotation);
 
-        endRay.addVectors(position, direction.multiplyScalar(10));
+        if (intersectObject) {
+            intersectObject.object.material.emissive.set(0x000000);
+        }
+
+        intersectObject = rayFunc(position, direction);
+        if (intersectObject) {
+            // console.log(intersectObject);
+            endRay.addVectors(position, direction.multiplyScalar(intersectObject.distance));
+            intersectObject.object.material.emissive.set(0x555555);
+        } else {
+            endRay.addVectors(position, direction.multiplyScalar(10));
+        }
+
+        if (grabbed) {
+            if (grabbedObject) {
+                grabbedObject.matrix.copy(cursor.matrix.clone().multiply(initialGrabbed));
+            } else if (intersectObject) {
+                grabbedObject = intersectObject.object;
+                initialGrabbed = cursor.matrix.clone().invert().multiply(grabbedObject.matrix);
+            }
+        } else {
+            grabbedObject = undefined;  // loeschen des "Flags", das in gegriffenes Obj. anzeigt,
+        }
 
         setLinePos(0, cursor.position);
         setLinePos(1, endRay);
-
-        for (const o of arr) {
-            const x = Math.random() * 0.1;
-            const y = Math.random() * 0.1;
-            const z = Math.random() * 0.1;
-            o.rotation.x += x;
-            // o.rotation.y += y;
-            o.rotation.z += z;
-        }
-
 
         renderer.render(scene, camera);
     }

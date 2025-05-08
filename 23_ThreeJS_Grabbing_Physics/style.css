@@ -1,6 +1,6 @@
 body {
 	margin: 0;
-	background-color: #e4d6d6;
+	background-color: #000;
 	color: #fff;
 	font-family: Monospace;
 	font-size: 13px;
@@ -32,11 +32,9 @@ canvas {
 	padding: 10px;
 	box-sizing: border-box;
 	text-align: center;
-	z-index: 1;
-	/* TODO Solve this in HTML */
+	z-index: 1; /* TODO Solve this in HTML */
 }
 
 .dg.ac {
-	z-index: 2 !important;
-	/* TODO Solve this in HTML */
+	z-index: 2 !important; /* TODO Solve this in HTML */
 }
