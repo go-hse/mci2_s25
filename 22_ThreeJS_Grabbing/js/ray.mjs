@@ -1,3 +1,5 @@
+import * as THREE from '../../99_Lib/three.module.min.js';
+
 export function createRay(objects) {
     const rayCaster = new THREE.Raycaster();
 
