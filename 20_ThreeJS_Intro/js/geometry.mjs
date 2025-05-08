@@ -12,7 +12,7 @@ const geometries = [
 
 export const NO_OF_GEOS = geometries.length;
 
-function randomMaterial() {
+export function randomMaterial() {
     return new THREE.MeshStandardMaterial({
         color: Math.random() * 0xff3333,
         roughness: 0.2,
