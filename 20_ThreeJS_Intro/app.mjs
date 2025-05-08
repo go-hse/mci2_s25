@@ -1,5 +1,5 @@
 import * as THREE from '../99_Lib/three.module.min.js';
-import { add, NO_OF_GEOS } from './js/geometry.mjs';
+import { add, NO_OF_GEOS, createLine } from './js/geometry.mjs';
 import { mouse, keyboard } from './js/interaction2D.mjs';
 
 console.log("ThreeJs " + THREE.REVISION);
@@ -42,6 +42,7 @@ window.onload = function () {
         }
     }
 
+    const setLinePos = createLine(scene);
 
     // Renderer erstellen
     const renderer = new THREE.WebGLRenderer({
@@ -52,7 +53,23 @@ window.onload = function () {
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
     // Renderer-Loop starten
+
+    const position = new THREE.Vector3();
+    const rotation = new THREE.Quaternion();
+    const scale = new THREE.Vector3();
+    const direction = new THREE.Vector3();
+    const endRay = new THREE.Vector3();
+
+
     function render() {
+        cursor.matrix.decompose(position, rotation, scale);
+        direction.set(0, 1, 0);
+        direction.applyQuaternion(rotation);
+
+        endRay.addVectors(position, direction.multiplyScalar(10));
+
+        setLinePos(0, cursor.position);
+        setLinePos(1, endRay);
 
         for (const o of arr) {
             const x = Math.random() * 0.1;

@@ -26,3 +26,31 @@ export function add(i, parent, x = 0, y = 0, z = 0) {
     parent.add(object);
     return object;
 }
+
+
+export function createLine(scene) {
+    const material = new THREE.LineBasicMaterial({
+        color: 0xffffff
+    });
+
+    const points = [];
+    points.push(new THREE.Vector3(0, 0, 0));
+    points.push(new THREE.Vector3(0, 1, 0));
+
+    const geometry = new THREE.BufferGeometry().setFromPoints(points);
+
+    const line = new THREE.Line(geometry, material);
+    scene.add(line);
+
+    const positions = line.geometry.attributes.position.array;
+
+    function setPos(idx, positionIn) {
+        idx *= 3;
+        positions[idx++] = positionIn.x;
+        positions[idx++] = positionIn.y;
+        positions[idx++] = positionIn.z;
+        line.geometry.attributes.position.needsUpdate = true;
+    }
+
+    return setPos;
+}
