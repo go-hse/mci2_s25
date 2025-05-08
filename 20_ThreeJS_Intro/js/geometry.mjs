@@ -23,6 +23,8 @@ export function randomMaterial() {
 export function add(i, parent, x = 0, y = 0, z = 0) {
     let object = new THREE.Mesh(geometries[i], randomMaterial());
     object.position.set(x, y, z);
+    object.castShadow = true;
+    object.receiveShadow = true;
     parent.add(object);
     return object;
 }

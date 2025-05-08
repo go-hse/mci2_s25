@@ -1,27 +1,48 @@
 import * as THREE from '../99_Lib/three.module.min.js';
 import { add, NO_OF_GEOS, createLine } from './js/geometry.mjs';
 import { mouse, keyboard } from './js/interaction2D.mjs';
+import { createRay } from './js/ray.mjs';
 
 console.log("ThreeJs " + THREE.REVISION);
 window.onload = function () {
     const scene = new THREE.Scene();
+    scene.background = new THREE.Color("hsla(253, 73.10%, 49.60%, 0.73)");
+
     // Lichter
     scene.add(new THREE.HemisphereLight(0x808080, 0x606060));
-    const light = new THREE.DirectionalLight(0xffffff);
-    light.position.set(0, 2, 0);
+    const light = new THREE.DirectionalLight(0xffffff, 2);
+    light.position.set(5, 2, 5);
+    light.castShadow = true;
     scene.add(light);
     // Kamera
     const camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.1, 100);
     camera.position.set(0, 0, 1);
     scene.add(camera);
-    // Geometrie
-    const ground = new THREE.Mesh(new THREE.BoxGeometry(5, 0.1, 5), new THREE.MeshStandardMaterial({
-        color: 0xffffff,
-        roughness: 0.7,
-        metalness: 0.0,
+    //////////////////////////////////////////////////////////////////////////////
+    // FLOOR
+    // const floorMaterial = await shaderMaterial("./shaders/floorVertexShader.glsl", "./shaders/floorFragmentShader.glsl")
+
+
+    const width = 0.1;
+    const box = new THREE.BoxGeometry(10, width, 10, 20, 1, 20);
+    const floor = new THREE.Mesh(box, new THREE.MeshStandardMaterial({
+        color: new THREE.Color("hsl(0, 54.80%, 93.90%)"),
+        roughness: 0.2,
+        metalness: 0.4
     }));
-    scene.add(ground);
-    ground.position.y = -0.5;
+    floor.position.y = -1;
+    scene.add(floor);
+    floor.receiveShadow = true;
+
+    const linematerial = new THREE.LineBasicMaterial({
+        color: new THREE.Color("hsl(67, 18.40%, 90.40%)")
+    });
+
+    const wireframe = new THREE.WireframeGeometry(box);
+    const line = new THREE.LineSegments(wireframe, linematerial);
+    line.position.y = floor.position.y;
+    scene.add(line);
+
 
     const arr = [];
 
@@ -42,6 +63,9 @@ window.onload = function () {
         }
     }
 
+    const rayFunc = createRay(arr);
+
+
     const setLinePos = createLine(scene);
 
     // Renderer erstellen
@@ -49,6 +73,9 @@ window.onload = function () {
         antialias: true,
     });
     // Renderer-Parameter setzen
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFShadowMap;
+
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
     document.body.appendChild(renderer.domElement);
