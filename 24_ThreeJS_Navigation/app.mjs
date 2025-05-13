@@ -116,15 +116,17 @@ window.onload = async function () {
     document.body.appendChild(VRButton.createButton(renderer));
 
     //
-    let last_active_controller, last_active_inputsource;
+    const controllers = {}, mainhand = "left";
+
     createVRcontrollers(scene, renderer, (controller, data, id) => {
         planeOffset.rotation.x = -Math.PI / 2;
         planeOffset.scale.set(0.5, 0.5, 0.5) // scale here
+        controllers[data.handedness] = {
+            controller, data
+        };
 
         cursor.matrixAutoUpdate = false;
         cursor.visible = false;
-        last_active_controller = controller;
-        last_active_inputsource = data;
         renderer.xr.enabled = true;
         console.log("verbinde", id, data.handedness)
     });
@@ -169,20 +171,28 @@ window.onload = async function () {
     });
 
     let wireframeFlag = false;
-    addKey("w", active => {
-        scene.traverse((object) => {
-            if (object.isMesh) {
-                if (Array.isArray(object.material)) {
-                    // Wenn das Mesh mehrere Materialien verwendet
-                    object.material.forEach((mat) => {
-                        mat.wireframe = active;
-                    });
-                } else {
-                    // Einzelnes Material
-                    object.material.wireframe = active;
+    function ToWireframe(active) {
+        if (wireframeFlag !== active) {
+            wireframeFlag = active;
+            scene.traverse((object) => {
+                if (object.isMesh) {
+                    if (Array.isArray(object.material)) {
+                        // Wenn das Mesh mehrere Materialien verwendet
+                        object.material.forEach((mat) => {
+                            mat.wireframe = active;
+                        });
+                    } else {
+                        // Einzelnes Material
+                        object.material.wireframe = active;
+                    }
                 }
-            }
-        });
+            });
+        }
+    }
+
+
+    addKey("w", active => {
+        ToWireframe(active);
     });
 
 
@@ -206,11 +216,12 @@ window.onload = async function () {
     let laststr;
     function render() {
 
-        if (last_active_controller) {
-            cursor.matrix.copy(last_active_controller.matrix);
-            squeezed = last_active_controller.userData.isSqueezeing;
-            grabbed = last_active_controller.userData.isSelecting;
-            let gamepad = last_active_inputsource.gamepad;
+        if (controllers[mainhand]) {
+            const controller = controllers[mainhand].controller;
+            cursor.matrix.copy(controller.matrix);
+            squeezed = controller.userData.isSqueezeing;
+            grabbed = controller.userData.isSelecting;
+            const gamepad = controllers[mainhand].data.gamepad;
 
             let bs = "Btn "
             for (let i = 0; i < gamepad.buttons.length; ++i) {
@@ -218,11 +229,16 @@ window.onload = async function () {
                 bs += ` [${i}: ${fmt(btn)}] `;
             }
 
-            const str = `${last_active_inputsource.handedness}: ${fmt(gamepad.axes[2])}/ ${fmt(gamepad.axes[3])} ${bs}`;
+            // left: Y:5; X:4 
+
+            const str = `${controllers[mainhand].data.handedness}: ${fmt(gamepad.axes[2])}/ ${fmt(gamepad.axes[3])} ${bs}`;
             if (str !== laststr) {
                 laststr = str;
                 console.log(laststr);
             }
+
+            if (gamepad.buttons[4].value) ToWireframe(true);
+            if (gamepad.buttons[5].value) ToWireframe(false);
 
             direction.set(0, 0, -1);
         } else {
