@@ -1,13 +1,7 @@
 import * as THREE from '../99_Lib/three.module.min.js';
 import { keyboard, mouse } from './js/interaction2D.mjs';
-import { add, createLine, loadGLTFcb, randomMaterial, shaderMaterial } from './js/geometry.mjs';
+import { add, createLine, loadGLTFcb, randomMaterial } from './js/geometry.mjs';
 import { createRay } from './js/ray.mjs';
-
-
-import { EffectComposer } from '../99_Lib/jsm/postprocessing/EffectComposer.js';
-import { RenderPass } from '../99_Lib/jsm/postprocessing/RenderPass.js';
-import { UnrealBloomPass } from '../99_Lib/jsm/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from '../99_Lib/jsm/postprocessing/OutputPass.js';
 
 
 import { VRButton } from '../99_Lib/jsm/webxr/VRButton.js';
@@ -33,11 +27,8 @@ window.onload = async function () {
     dirLight.shadow.camera.zoom = 2;
     scene.add(dirLight);
 
-
     //////////////////////////////////////////////////////////////////////////////
     // FLOOR
-    // const floorMaterial = await shaderMaterial("./shaders/floorVertexShader.glsl", "./shaders/floorFragmentShader.glsl")
-
 
     const width = 0.1;
     const box = new THREE.BoxGeometry(10, width, 10, 10, 1, 10);
@@ -53,7 +44,6 @@ window.onload = async function () {
     line.material.transparent = true;
     line.position.y = floor.position.y;
     scene.add(line);
-
     scene.add(floor);
 
 
@@ -80,6 +70,30 @@ window.onload = async function () {
     });
 
 
+    const planeGroup = new THREE.Group();
+    planeGroup.matrixAutoUpdate = false;
+    planeGroup.visible = false;
+    scene.add(planeGroup);
+
+    const planeOffset = new THREE.Group();
+    planeGroup.add(planeOffset);
+
+    loadGLTFcb('./models/plane.gltf', (gltf) => {
+        gltf.scene.traverse(child => {
+            if (child.name === "Plane") {
+                console.log("plane:", child.name);
+                child.scale.set(0.1, 0.1, 0.1) // scale here
+                child.position.set(0, 0, 0);
+                child.rotation.set(0, 0, 0);
+                child.updateMatrix();
+                child.rotation.z = Math.PI / 2;
+                child.updateMatrix();
+                planeOffset.add(child);
+            }
+        });
+    });
+
+
     const lineFunc = createLine(scene);
     const rayFunc = createRay(objects);
 
@@ -97,43 +111,23 @@ window.onload = async function () {
     // Renderer-Parameter setzen
     renderer.setPixelRatio(window.devicePixelRatio);
     renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.toneMapping = THREE.ReinhardToneMapping;
-    renderer.toneMappingExposure = Math.pow(1, 4.0);
     renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
     document.body.appendChild(VRButton.createButton(renderer));
 
     //
-    let last_active_controller;
+    let last_active_controller, last_active_inputsource;
     createVRcontrollers(scene, renderer, (controller, data, id) => {
+        planeOffset.rotation.x = -Math.PI / 2;
+        planeOffset.scale.set(0.5, 0.5, 0.5) // scale here
+
         cursor.matrixAutoUpdate = false;
         cursor.visible = false;
         last_active_controller = controller;
+        last_active_inputsource = data;
         renderer.xr.enabled = true;
         console.log("verbinde", id, data.handedness)
     });
-
-    const params = {
-        threshold: 0,
-        strength: 1,
-        radius: 0,
-        exposure: 1
-    };
-
-    const renderScene = new RenderPass(scene, camera);
-
-    const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 1.5, 0.4, 0.85);
-    bloomPass.threshold = params.threshold;
-    bloomPass.strength = params.strength;
-    bloomPass.radius = params.radius;
-
-    const outputPass = new OutputPass();
-
-    const composer = new EffectComposer(renderer);
-    composer.addPass(renderScene);
-    composer.addPass(bloomPass);
-    composer.addPass(outputPass);
-
 
     window.addEventListener('resize', onWindowResize);
     function onWindowResize() {
@@ -174,6 +168,23 @@ window.onload = async function () {
         world.matrix.identity();
     });
 
+    let wireframeFlag = false;
+    addKey("w", active => {
+        scene.traverse((object) => {
+            if (object.isMesh) {
+                if (Array.isArray(object.material)) {
+                    // Wenn das Mesh mehrere Materialien verwendet
+                    object.material.forEach((mat) => {
+                        mat.wireframe = active;
+                    });
+                } else {
+                    // Einzelnes Material
+                    object.material.wireframe = active;
+                }
+            }
+        });
+    });
+
 
     const maxDistance = 10;
     direction.set(0, 1, 0);
@@ -185,14 +196,34 @@ window.onload = async function () {
     const flySpeedTranslationFactor = -0.02;
     const euler = new THREE.Euler();
 
+    function fmt(n) {
+        return n % 1 === 0 ? n : n.toFixed(1);
+    }
+
 
     // Renderer-Loop starten
+
+    let laststr;
     function render() {
 
         if (last_active_controller) {
             cursor.matrix.copy(last_active_controller.matrix);
             squeezed = last_active_controller.userData.isSqueezeing;
             grabbed = last_active_controller.userData.isSelecting;
+            let gamepad = last_active_inputsource.gamepad;
+
+            let bs = "Btn "
+            for (let i = 0; i < gamepad.buttons.length; ++i) {
+                const btn = gamepad.buttons[i].value;
+                bs += ` [${i}: ${fmt(btn)}] `;
+            }
+
+            const str = `${last_active_inputsource.handedness}: ${fmt(gamepad.axes[2])}/ ${fmt(gamepad.axes[3])} ${bs}`;
+            if (str !== laststr) {
+                laststr = str;
+                console.log(laststr);
+            }
+
             direction.set(0, 0, -1);
         } else {
             direction.set(0, 1, 0);
@@ -207,7 +238,7 @@ window.onload = async function () {
         if (grabbedObject === undefined) {
             firstObjectHitByRay = rayFunc(position, direction);
             if (firstObjectHitByRay) {
-                console.log(firstObjectHitByRay.object.name, firstObjectHitByRay.distance);
+                // console.log(firstObjectHitByRay.object.name, firstObjectHitByRay.distance);
                 distance = firstObjectHitByRay.distance;
             } else {
                 distance = maxDistance;
@@ -240,7 +271,9 @@ window.onload = async function () {
 
         if (squeezed) {
             lineFunc(1, position);
+
             if (inverseHand !== undefined) {
+                lineFunc(0, position);
                 let differenceHand = cursor.matrix.clone().multiply(inverseHand);
                 differenceHand.decompose(position, rotation, scale);
                 deltaFlyRotation.set(0, 0, 0, 1);
@@ -255,9 +288,12 @@ window.onload = async function () {
                 differenceMatrix.compose(position.multiplyScalar(flySpeedTranslationFactor), deltaFlyRotation, scale);
                 world.matrix.premultiply(differenceMatrix);
             } else {
+                planeGroup.visible = true;
+                planeGroup.matrix.copy(cursor.matrix);
                 inverseHand = cursor.matrix.clone().invert();
             }
         } else {
+            planeGroup.visible = false;
             inverseHand = undefined;
         }
         renderer.render(scene, camera);
