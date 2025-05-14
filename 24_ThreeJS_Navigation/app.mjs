@@ -5,6 +5,8 @@ import { createRay } from './js/ray.mjs';
 
 
 import { VRButton } from '../99_Lib/jsm/webxr/VRButton.js';
+import { ARButton } from 'three/addons/webxr/ARButton.js';
+
 import { createVRcontrollers } from './js/vr.mjs';
 
 window.onload = async function () {
@@ -39,12 +41,17 @@ window.onload = async function () {
     floor.name = "floor";
 
     const wireframe = new THREE.WireframeGeometry(box);
-    const line = new THREE.LineSegments(wireframe);
-    line.material.opacity = 0.25;
-    line.material.transparent = true;
-    line.position.y = floor.position.y;
-    scene.add(line);
+    const wireframeFloor = new THREE.LineSegments(wireframe);
+    wireframeFloor.material.opacity = 0.25;
+    wireframeFloor.material.transparent = true;
+    wireframeFloor.position.y = floor.position.y;
+    scene.add(wireframeFloor);
     scene.add(floor);
+
+    function FloorVisible(active) {
+        floor.visible = active;
+        wireframeFloor.visible = active;
+    }
 
 
     const cursor = add(1, scene);
@@ -114,9 +121,11 @@ window.onload = async function () {
     renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
     document.body.appendChild(VRButton.createButton(renderer));
+    document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
+
 
     //
-    const controllers = {}, mainhand = "left";
+    const controllers = {}, mainhand = "left", scndhand = mainhand === "left" ? "right" : "left";
 
     createVRcontrollers(scene, renderer, (controller, data, id) => {
         planeOffset.rotation.x = -Math.PI / 2;
@@ -214,31 +223,35 @@ window.onload = async function () {
     // Renderer-Loop starten
 
     let laststr;
-    function render() {
+    function render(timestamp, frame) {
+        if (frame) {
+            console.log(timestamp, frame);
+        }
 
         if (controllers[mainhand]) {
             const controller = controllers[mainhand].controller;
             cursor.matrix.copy(controller.matrix);
             squeezed = controller.userData.isSqueezeing;
             grabbed = controller.userData.isSelecting;
-            const gamepad = controllers[mainhand].data.gamepad;
+            const mainGamepad = controllers[mainhand].data.gamepad;
+            const scndGamepad = controllers[scndhand].data.gamepad;
 
             let bs = "Btn "
-            for (let i = 0; i < gamepad.buttons.length; ++i) {
-                const btn = gamepad.buttons[i].value;
+            for (let i = 0; i < mainGamepad.buttons.length; ++i) {
+                const btn = mainGamepad.buttons[i].value;
                 bs += ` [${i}: ${fmt(btn)}] `;
             }
 
-            // left: Y:5; X:4 
-
-            const str = `${controllers[mainhand].data.handedness}: ${fmt(gamepad.axes[2])}/ ${fmt(gamepad.axes[3])} ${bs}`;
+            const str = `${controllers[mainhand].data.handedness}: ${fmt(mainGamepad.axes[2])}/ ${fmt(mainGamepad.axes[3])} ${bs}`;
             if (str !== laststr) {
                 laststr = str;
                 console.log(laststr);
             }
 
-            if (gamepad.buttons[4].value) ToWireframe(true);
-            if (gamepad.buttons[5].value) ToWireframe(false);
+            if (mainGamepad.buttons[4].value) ToWireframe(true);
+            if (mainGamepad.buttons[5].value) ToWireframe(false);
+            if (scndGamepad.buttons[4].value) FloorVisible(true);
+            if (scndGamepad.buttons[5].value) FloorVisible(false);
 
             direction.set(0, 0, -1);
         } else {
