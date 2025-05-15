@@ -3,7 +3,7 @@ import { keyboard, mouse } from './js/interaction2D.mjs';
 import { add, createLine, loadGLTFcb, randomMaterial } from './js/geometry.mjs';
 import { createRay } from './js/ray.mjs';
 
-
+// VR- Buttons zum Starten des immersiven Modus  
 import { VRButton } from '../99_Lib/jsm/webxr/VRButton.js';
 import { ARButton } from 'three/addons/webxr/ARButton.js';
 
@@ -120,16 +120,20 @@ window.onload = async function () {
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.shadowMap.enabled = true;
     document.body.appendChild(renderer.domElement);
+
+    // VR 
     document.body.appendChild(VRButton.createButton(renderer));
     document.body.appendChild(ARButton.createButton(renderer, { requiredFeatures: ['hit-test'] }));
 
-
-    //
+    // VR: Callback, wenn Benutzer in VR/AR-Modus wechselt 
     const controllers = {}, mainhand = "left", scndhand = mainhand === "left" ? "right" : "left";
-
     createVRcontrollers(scene, renderer, (controller, data, id) => {
+
+        // Flug-Modus-Anzeige: andere Drehung
         planeOffset.rotation.x = -Math.PI / 2;
         planeOffset.scale.set(0.5, 0.5, 0.5) // scale here
+
+        // Linker/rechter Controller
         controllers[data.handedness] = {
             controller, data
         };
@@ -228,6 +232,7 @@ window.onload = async function () {
             console.log(timestamp, frame);
         }
 
+        // VR 
         if (controllers[mainhand]) {
             const controller = controllers[mainhand].controller;
             cursor.matrix.copy(controller.matrix);
@@ -298,6 +303,7 @@ window.onload = async function () {
             grabbedObject = undefined;
         }
 
+        // Navigation
         if (squeezed) {
             lineFunc(1, position);
 
@@ -305,6 +311,8 @@ window.onload = async function () {
                 lineFunc(0, position);
                 let differenceHand = cursor.matrix.clone().multiply(inverseHand);
                 differenceHand.decompose(position, rotation, scale);
+
+                // Navigation: Skalierung der Rotationsgeschwindigkeit
                 deltaFlyRotation.set(0, 0, 0, 1);
                 deltaFlyRotation.slerp(rotation.conjugate(), flySpeedRotationFactor);
 
@@ -317,7 +325,7 @@ window.onload = async function () {
                 differenceMatrix.compose(position.multiplyScalar(flySpeedTranslationFactor), deltaFlyRotation, scale);
                 world.matrix.premultiply(differenceMatrix);
             } else {
-                planeGroup.visible = true;
+                planeGroup.visible = true; // Flugzeug als Feedback sichtbar
                 planeGroup.matrix.copy(cursor.matrix);
                 inverseHand = cursor.matrix.clone().invert();
             }

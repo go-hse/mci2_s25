@@ -162,7 +162,7 @@ function image(context, src, sc, cb, center = false) {
         halfW = img.naturalWidth / 2;
         halfH = img.naturalHeight / 2;
         console.log("image load", src, ratio);
-        cb();
+        if (cb) cb();
     });
 
     return (x, y, a = 0) => {
